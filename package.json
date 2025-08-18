@@ -1,0 +1,20 @@
+{
+  "name": "ai-pply",
+  "version": "1.0.0",
+  "description": "AI-PPLY is a fullstack web application that helps job seekers optimise their resumes for Applicant Tracking Systems (ATS) and specific job postings.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mickman7/AI-PPLY.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Mickman7/AI-PPLY/issues"
+  },
+  "homepage": "https://github.com/Mickman7/AI-PPLY#readme"
+}
