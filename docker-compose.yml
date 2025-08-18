@@ -1,9 +1,11 @@
-version: "3.8"
+version: "3.9"
+
 services:
   frontend:
     build: ./frontend
+    container_name: ai-pply-frontend
     ports:
-      - "5173:5173"
+      - "3000:3000"
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -12,7 +14,24 @@ services:
 
   backend:
     build: ./backend
+    container_name: ai-pply-backend
     ports:
-      - "5000:5000"
+      - "8000:8000"
     volumes:
       - ./backend:/app
+    depends_on:
+      - mongo
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/ai-pply
+
+  mongo:
+    image: mongo:6
+    container_name: ai-pply-mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:
