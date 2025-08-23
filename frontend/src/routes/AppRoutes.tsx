@@ -6,7 +6,7 @@ import LandingPage from "../pages/LandingPage";
 import AuthPage from "../pages/AuthPage";
 import Dashboard from "../pages/Dashboard";
 import ResumeUploadPage from "../pages/ResumeUploadPage";
-import Resultspage from "../pages/Resultspage";
+import ResultsPage from "../pages/Resultspage";
 import SettingsPage from "../pages/SettingsPage";
 import ResumeListPage from "../pages/ResumeListPage";
 
@@ -38,7 +38,7 @@ const AppRoutes = () => {
           <Route path="/" element={<LandingPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/upload" element={<ResumeUploadPage />} />
-          <Route path="/results" element={<Resultspage />} />
+          <Route path="/results" element={<ResultsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/resumes" element={<ResumeListPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />

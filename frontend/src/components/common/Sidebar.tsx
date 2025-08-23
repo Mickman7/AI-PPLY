@@ -21,7 +21,7 @@ const Sidebar = () => {
         </li>
         <li className="mb-4 flex items-center">
           <FontAwesomeIcon icon={faBookmark} className="mr-2" />
-          <Link to="/matches">Matches</Link>
+          <Link to="/results">Matches</Link>
         </li>
         <li className="flex items-center">
           <FontAwesomeIcon icon={faCog} className="mr-2" />

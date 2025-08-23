@@ -1,14 +1,14 @@
 from fastapi import FastAPI
-from motor.motor_asyncio import AsyncIOMotorClient
-import os
+from app.api import compare
 
-app = FastAPI()
+# Initialize FastAPI application
+app = FastAPI(title="AI-PPLY API", version="1.0")
 
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
-client = AsyncIOMotorClient(MONGO_URI)
-db = client["ai-pply"]
+# Register the "compare" router so /compare endpoints are active
+app.include_router(compare.router, prefix="/compare", tags=["Comparison"])
 
+# Root endpoint: simple check if API is running
 @app.get("/")
-def root():
-    return {"message": "AI-PPLY backend running"}
+async def root():
+    return {"message": "Welcome to AI-PPLY backend!"}
 
