@@ -2,7 +2,9 @@ import React from 'react'
 
 const Resultspage = () => {
   return (
-    <div>Resultspage</div>
+    <div className='border border-grey-100'>
+
+    </div>
   )
 }
 

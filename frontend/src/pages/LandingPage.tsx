@@ -26,13 +26,13 @@ const LandingPage = () => {
                 </div>
                 <div className='border-1 rounded p-4 m-2 w-96 flex flex-col justify-evenly gap-2'>
                     <img src="https://www.iconpacks.net/icons/2/free-file-icon-1453-thumb.png" alt="file" className='w-12'/>
-                    <p className='font-semibold text-xl'>Upload your documents</p>
-                    <p>Seamlessly upload your resume and any job description. Our system supports various formats including PDF and DOCX.</p>
+                    <p className='font-semibold text-xl'>AI-Powered Analysis</p>
+                    <p>Our advanced AI algorithms meticulously compare your skills and experience with the job requirements, providing a comprehensive match score.</p>
                 </div>
                 <div className='border-1 rounded p-4 m-2 w-96 flex flex-col justify-evenly gap-2'>
                     <img src="https://www.iconpacks.net/icons/2/free-file-icon-1453-thumb.png" alt="file" className='w-12'/>
-                    <p className='font-semibold text-xl'>Upload your documents</p>
-                    <p>Seamlessly upload your resume and any job description. Our system supports various formats including PDF and DOCX.</p>
+                    <p className='font-semibold text-xl'>Personalized Insights</p>
+                    <p>Receive actionable feedback on skill gaps, keyword optimization, and tailored suggestions to enhance your application's effectiveness.</p>
                 </div>
             </div>
         </div>
@@ -68,7 +68,7 @@ const LandingPage = () => {
         <div className='p-4 m-4'>
             <div className='p-4 rounded bg-[#1570D1FF] w-auto h-46 flex flex-col justify-center items-center'>
                 <h1 className='text-white font-bold'>Ready to supercharge your job search?</h1>
-                <button className='rounded mt-8'>Start Optimising Today</button>
+                <button className='rounded-full px-8 py-2 mt-8 bg-white font-semibold'>Start Optimising Today</button>
             </div>
         </div>
 
