@@ -1,18 +1,23 @@
-import { useDropzone } from "react-dropzone"
+import { useDropzone } from "react-dropzone";
 
-// Accept a callback to send the selected file to parent
-const UploadCard = ({ setFile }: { setFile: (file: File) => void }) => {
+interface UploadCardProps {
+  onFileSelected?: (file: File) => void;
+}
+
+const UploadCard: React.FC<UploadCardProps> = ({ onFileSelected }) => {
   const { getRootProps, getInputProps, isDragActive, acceptedFiles } = useDropzone({
     accept: {
       "application/pdf": [".pdf"],
-      "application/msword": [".doc", ".docx"],
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
       "text/plain": [".txt"],
     },
     multiple: false,
-    onDrop: (files) => {
-      setFile(files[0])
-    }
-  })
+    onDrop: (files: File[]) => {
+      if (files.length > 0 && onFileSelected) {
+        onFileSelected(files[0]); // ✅ Type-safe
+      }
+    },
+  });
 
   return (
     <div
@@ -22,33 +27,22 @@ const UploadCard = ({ setFile }: { setFile: (file: File) => void }) => {
       }`}
     >
       <input {...getInputProps()} />
-      <div className="w-16 h-16 flex items-center justify-center bg-gray-100 rounded-full mb-4">
-        <svg
-          className="w-8 h-8 text-blue-500"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-        </svg>
-      </div>
       <p className="text-gray-700">
         {isDragActive ? "Drop your file here..." : "Drag & drop your resume file here"}
       </p>
-      <button type="button" className="text-blue-500 hover:underline mt-2">or browse to upload</button>
+
       {acceptedFiles.length > 0 && (
         <div className="mt-4 text-sm text-gray-600">
           <p>Selected file:</p>
           <ul>
             {acceptedFiles.map((file) => (
-              <li key={file.path}>{file.path}</li>
+              <li key={file.name}>{file.name}</li>
             ))}
           </ul>
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default UploadCard
+export default UploadCard;

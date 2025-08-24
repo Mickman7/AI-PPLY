@@ -1,14 +1,26 @@
 from fastapi import FastAPI
-from app.api import compare
+from fastapi.middleware.cors import CORSMiddleware
+from api.compare import router as compare_router
+from dotenv import load_dotenv
+import os
 
-# Initialize FastAPI application
-app = FastAPI(title="AI-PPLY API", version="1.0")
+# Load environment variables from .env file
+load_dotenv()
 
-# Register the "compare" router so /compare endpoints are active
-app.include_router(compare.router, prefix="/compare", tags=["Comparison"])
+app = FastAPI()
 
-# Root endpoint: simple check if API is running
+# CORS: allow frontend (React at localhost:3000) to talk to FastAPI
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Register routes
+app.include_router(compare_router, prefix="/api", tags=["compare"])
+
 @app.get("/")
-async def root():
-    return {"message": "Welcome to AI-PPLY backend!"}
-
+def root():
+    return {"message": "API is running"}
