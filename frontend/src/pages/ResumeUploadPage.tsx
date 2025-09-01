@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import UploadCard from "../components/common/UploadCard";
+import Lottie from "lottie-react";
+import loadingAnimation from "../assets/Scan.json"; // make sure the file is here
 
 // Define backend response structure
 interface AnalysisResult {
@@ -16,6 +18,7 @@ const ResumeUploadPage: React.FC = () => {
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [jobText, setJobText] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleAnalyze = async () => {
     if (!selectedFile || !jobText.trim()) {
@@ -23,41 +26,54 @@ const ResumeUploadPage: React.FC = () => {
       alert("Please select a file and enter job description");
       return;
     }
-  
+
     const formData = new FormData();
     formData.append("resume", selectedFile);
     formData.append("job_text", jobText);
-  
+
     try {
       console.log("Sending request...");
-      
-      const response = await fetch("http://localhost:8000/api/upload-text", { 
+      setIsLoading(true);
+
+      const response = await fetch("http://localhost:8000/api/upload-text", {
         method: "POST",
         body: formData,
       });
-      
+
       console.log("Response status:", response.status);
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         console.error("Server error:", errorText);
         throw new Error(`Failed to analyze: ${response.status} ${errorText}`);
       }
-  
+
       const result: AnalysisResult = await response.json();
       console.log("Analysis Result:", result);
-  
+
       navigate("/results", { state: { result } });
-      
     } catch (error) {
       console.error("Error analyzing resume:", error);
       alert("Analysis failed. Check console for details.");
+      setIsLoading(false); // in case of failure, hide loader
     }
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center">
-      <main className="flex flex-col items-center mt-12">
+    <div className="min-h-screen bg-white flex flex-col items-center relative">
+      {/* Loader overlay */}
+      {isLoading && (
+        <div className="fixed inset-0 bg-white flex items-center justify-center z-50">
+          <div className="w-64 h-64">
+            <Lottie animationData={loadingAnimation} loop={true} />
+          </div>
+          <p className="absolute bottom-20 text-lg font-semibold text-gray-700">
+            Analyzing your resume...
+          </p>
+        </div>
+      )}
+
+      <main className="flex flex-col items-center mt-12 w-full">
         <h1 className="text-2xl font-semibold mb-6">Upload Your Resume</h1>
         <p className="text-gray-600 mb-4">
           Drag and drop your resume here, or click to upload. Supported formats: PDF, DOCX, TXT.
@@ -80,7 +96,12 @@ const ResumeUploadPage: React.FC = () => {
         {/* Analyze Button */}
         <button
           onClick={handleAnalyze}
-          className="mt-6 bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
+          disabled={isLoading}
+          className={`mt-6 px-6 py-2 rounded text-white ${
+            isLoading
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-blue-500 hover:bg-blue-600"
+          }`}
         >
           Analyze Resume
         </button>

@@ -1,0 +1,80 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - navigation [ref=e3]:
+    - heading "AI-PPLY" [level=1] [ref=e4]
+    - list [ref=e5]:
+      - listitem [ref=e6]:
+        - link "Home" [ref=e7] [cursor=pointer]:
+          - /url: /
+      - listitem [ref=e8]:
+        - link "About" [ref=e9] [cursor=pointer]:
+          - /url: /dashboard
+      - generic [ref=e10]:
+        - listitem [ref=e11]:
+          - link "Login" [ref=e12] [cursor=pointer]:
+            - /url: /login
+        - listitem [ref=e13]:
+          - link "Sign Up" [ref=e14] [cursor=pointer]:
+            - /url: /signup
+  - generic [ref=e16]:
+    - generic [ref=e17]:
+      - generic [ref=e18]:
+        - heading "Land your dream job with AI-powered resume matching" [level=1] [ref=e19]:
+          - text: Land your dream job with
+          - text: AI-powered resume matching
+        - paragraph [ref=e20]: AI-PPLY empowers you to optimize your applications by providing in-depth analysis of your resume against job descriptions, identifying key strengths and areas for improvement.
+        - button "Get Started" [ref=e21]
+      - img "hero image" [ref=e23]
+    - generic [ref=e24]:
+      - heading "How AI-PPLY Works" [level=2] [ref=e25]
+      - generic [ref=e26]:
+        - generic [ref=e27]:
+          - img "file" [ref=e28]
+          - paragraph [ref=e29]: Upload your documents
+          - paragraph [ref=e30]: Seamlessly upload your resume and any job description. Our system supports various formats including PDF and DOCX.
+        - generic [ref=e31]:
+          - img "file" [ref=e32]
+          - paragraph [ref=e33]: AI-Powered Analysis
+          - paragraph [ref=e34]: Our advanced AI algorithms meticulously compare your skills and experience with the job requirements, providing a comprehensive match score.
+        - generic [ref=e35]:
+          - img "file" [ref=e36]
+          - paragraph [ref=e37]: Personalized Insights
+          - paragraph [ref=e38]: Receive actionable feedback on skill gaps, keyword optimization, and tailored suggestions to enhance your application's effectiveness.
+    - generic [ref=e39]:
+      - heading "What Other Users Said" [level=2] [ref=e40]
+      - generic [ref=e41]:
+        - generic [ref=e42]:
+          - generic [ref=e43]:
+            - img "file" [ref=e44]
+            - generic [ref=e45]:
+              - paragraph [ref=e46]: Sarah Brown
+              - paragraph [ref=e47]: Marketing Specialist
+          - paragraph [ref=e48]: "\"AI-PPLY helped me tailor my resume perfectly for my dream job. The insights were invaluable, and I got an interview within days!\""
+        - generic [ref=e49]:
+          - generic [ref=e50]:
+            - img "file" [ref=e51]
+            - generic [ref=e52]:
+              - paragraph [ref=e53]: Sarah Brown
+              - paragraph [ref=e54]: Marketing Specialist
+          - paragraph [ref=e55]: "\"The job description matching feature is a game-changer. It highlights exactly what I need to adjust, saving me so much time and effort.\""
+    - generic [ref=e57]:
+      - heading "Ready to supercharge your job search?" [level=1] [ref=e58]
+      - button "Start Optimising Today" [ref=e59]
+    - contentinfo [ref=e60]:
+      - generic [ref=e61]:
+        - link "Product" [ref=e62] [cursor=pointer]:
+          - /url: "#"
+        - link "Resources" [ref=e63] [cursor=pointer]:
+          - /url: "#"
+        - link "Company" [ref=e64] [cursor=pointer]:
+          - /url: "#"
+      - generic [ref=e65]:
+        - link "LinkedIn" [ref=e66] [cursor=pointer]:
+          - /url: "#"
+        - link "Instagram" [ref=e67] [cursor=pointer]:
+          - /url: "#"
+        - link "Twitter" [ref=e68] [cursor=pointer]:
+          - /url: "#"
+```

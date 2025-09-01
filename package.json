@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/Mickman7/AI-PPLY/issues"
   },
-  "homepage": "https://github.com/Mickman7/AI-PPLY#readme"
+  "homepage": "https://github.com/Mickman7/AI-PPLY#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.55.0"
+  }
 }
