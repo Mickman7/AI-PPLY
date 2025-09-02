@@ -1,11 +1,50 @@
-import React from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGoogle } from '@fortawesome/free-brands-svg-icons';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
+import { auth } from '../firebaseConfig'
 
 const AuthPage = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const isSignup = location.pathname === '/signup';
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (isSignup && password !== confirmPassword) {
+      setError("Passwords don't match");
+      return;
+    }
+
+    try {
+      if (isSignup) {
+        await createUserWithEmailAndPassword(auth, email, password);
+      } else {
+        await signInWithEmailAndPassword(auth, email, password);
+      }
+      navigate('/'); 
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    // try {
+    //   await signInWithPopup(auth, googleProvider);
+    //   navigate('/'); // redirect after Google sign-in
+    // } catch (err: any) {
+    //   setError(err.message);
+    // }
+    console.log('button pressed')
+  };
 
   return (
     <div className="flex flex-col justify-center items-center h-screen bg-gray-100">
@@ -14,7 +53,8 @@ const AuthPage = () => {
         <div className="text-center mb-5">
           <h2 className="text-2xl font-bold">{isSignup ? 'Create an Account' : 'Welcome Back!'}</h2>
         </div>
-        <form>
+        <form onSubmit={handleSubmit}>
+          {error && <div className="text-red-500 mb-4">{error}</div>}
           <div className="mb-4">
             <label htmlFor="email" className="block mb-1 font-bold">Email</label>
             <input
@@ -22,6 +62,9 @@ const AuthPage = () => {
               id="email"
               placeholder="you@example.com"
               className="w-full p-2 border border-gray-300 rounded"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
             />
           </div>
           <div className="mb-4">
@@ -31,6 +74,9 @@ const AuthPage = () => {
               id="password"
               placeholder="Password"
               className="w-full p-2 border border-gray-300 rounded"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
             />
           </div>
           {isSignup && (
@@ -41,6 +87,9 @@ const AuthPage = () => {
                 id="confirm-password"
                 placeholder="Confirm Password"
                 className="w-full p-2 border border-gray-300 rounded"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
               />
             </div>
           )}
@@ -53,6 +102,7 @@ const AuthPage = () => {
         </form>
         <div className="text-center my-5 text-gray-500">OR</div>
         <button
+          onClick={handleGoogleSignIn}
           className="w-full p-2 bg-white text-black border border-gray-300 rounded flex items-center justify-center font-bold hover:bg-gray-100"
         >
           <FontAwesomeIcon icon={faGoogle} className="w-5 h-5 mr-2" />
