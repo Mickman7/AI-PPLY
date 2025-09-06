@@ -2,23 +2,41 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import UploadCard from "../components/common/UploadCard";
 import Lottie from "lottie-react";
-import loadingAnimation from "../assets/Scan.json"; // make sure the file is here
+import loadingAnimation from "../assets/Scan.json";
+import { useResume } from "../context/ResumeContext"; // Import the context hook
 
 // Define backend response structure
+interface CategoryResult {
+  score: number;
+  matches: string;
+  gaps: string;
+}
+
 interface AnalysisResult {
   match_score: number;
-  overview: {
-    matches: string;
-    gaps: string;
-  };
+  tone_style: CategoryResult;
+  content: CategoryResult;
+  structure: CategoryResult;
+  skills: CategoryResult;
 }
 
 const ResumeUploadPage: React.FC = () => {
   const navigate = useNavigate();
+  const { resumeData, setResumeData } = useResume(); // Use the context
 
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [jobText, setJobText] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  // Use the values from context instead of local state
+  const selectedFile = resumeData.selectedFile;
+  const jobText = resumeData.jobText;
+
+  const handleFileSelected = (file: File | null) => {
+    setResumeData({ ...resumeData, selectedFile: file });
+  };
+
+  const handleJobTextChange = (text: string) => {
+    setResumeData({ ...resumeData, jobText: text });
+  };
 
   const handleAnalyze = async () => {
     if (!selectedFile || !jobText.trim()) {
@@ -48,14 +66,16 @@ const ResumeUploadPage: React.FC = () => {
         throw new Error(`Failed to analyze: ${response.status} ${errorText}`);
       }
 
-      const result: AnalysisResult = await response.json();
+      const result = await response.json();
       console.log("Analysis Result:", result);
 
+      // Navigate to results page with the result data
       navigate("/results", { state: { result } });
     } catch (error) {
       console.error("Error analyzing resume:", error);
       alert("Analysis failed. Check console for details.");
-      setIsLoading(false); // in case of failure, hide loader
+    } finally {
+      setIsLoading(false); // Ensure loader is hidden
     }
   };
 
@@ -79,8 +99,8 @@ const ResumeUploadPage: React.FC = () => {
           Drag and drop your resume here, or click to upload. Supported formats: PDF, DOCX, TXT.
         </p>
 
-        {/* Pass callback for file selection */}
-        <UploadCard onFileSelected={setSelectedFile} />
+        {/* Pass both the callback and the current file */}
+        <UploadCard onFileSelected={handleFileSelected} file={selectedFile} />
 
         {/* Job Description Section */}
         <section className="mt-12 w-full max-w-xl">
@@ -89,7 +109,7 @@ const ResumeUploadPage: React.FC = () => {
             className="w-full h-40 border border-gray-300 rounded-lg p-4 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Paste the job description text here..."
             value={jobText}
-            onChange={(e) => setJobText(e.target.value)}
+            onChange={(e) => handleJobTextChange(e.target.value)}
           />
         </section>
 

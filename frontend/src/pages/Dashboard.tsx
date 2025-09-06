@@ -1,11 +1,85 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { collection, getDocs, orderBy, query } from 'firebase/firestore';
+import { db } from '../firebaseConfig'; // Adjust path as needed
+
+interface SavedAnalysis {
+  id: string;
+  resumeName: string;
+  jobDescription: string;
+  result: {
+    match_score: number;
+  };
+  createdAt: any;
+}
 
 const Dashboard = () => {
+  const [analyses, setAnalyses] = useState<SavedAnalysis[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAnalyses = async () => {
+      try {
+        const q = query(collection(db, 'analyses'), orderBy('createdAt', 'desc'));
+        const querySnapshot = await getDocs(q);
+        
+        const analysesData: SavedAnalysis[] = [];
+        querySnapshot.forEach((doc) => {
+          analysesData.push({
+            id: doc.id,
+            ...doc.data(),
+          } as SavedAnalysis);
+        });
+        
+        setAnalyses(analysesData);
+      } catch (error) {
+        console.error('Error fetching analyses:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAnalyses();
+  }, []);
+
+  // Function to extract job title from job description (simple approach)
+  const extractJobTitle = (jobDescription: string) => {
+    if (!jobDescription) return 'Unknown Position';
+    
+    // Try to find a job title pattern
+    const titleMatch = jobDescription.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\s+(?:Engineer|Developer|Designer|Manager|Analyst|Specialist))/);
+    if (titleMatch) return titleMatch[0];
+    
+    // Fallback: return first few words
+    return jobDescription.split(' ').slice(0, 4).join(' ') + '...';
+  };
+
+  // Format date relative to now
+  const formatRelativeTime = (timestamp: any) => {
+    if (!timestamp) return 'Unknown date';
+    
+    const date = timestamp.toDate();
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+    if (diffInHours < 168) return `${Math.floor(diffInHours / 24)} day${Math.floor(diffInHours / 24) > 1 ? 's' : ''} ago`;
+    
+    return date.toLocaleDateString();
+  };
+
+  // Get color based on match score
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return 'text-green-600';
+    if (score >= 60) return 'text-gray-800';
+    return 'text-red-500';
+  };
+
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
       {/* Header */}
       <div className="bg-blue-100 p-8 rounded-xl shadow-lg">
-        <h5 className="text-sm font-medium text-gray-500">Friday, August 2nd</h5>
+        <h5 className="text-sm font-medium text-gray-500">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</h5>
         <h2 className="text-3xl font-bold text-gray-800 mt-1">Good Morning, Sarah Chen.</h2>
       </div>
 
@@ -13,10 +87,16 @@ const Dashboard = () => {
       <div className="mt-8 bg-white p-8 rounded-xl shadow-lg">
         <h3 className="text-xl font-semibold text-gray-800 mb-6">Quick Actions</h3>
         <div className="grid grid-cols-2 gap-6">
-          <button className="bg-blue-600 text-white py-3 rounded-lg shadow-md hover:bg-blue-700">
+          <button 
+            onClick={() => window.location.href = '/upload'}
+            className="bg-blue-600 text-white py-3 rounded-lg shadow-md hover:bg-blue-700"
+          >
             Upload Resume
           </button>
-          <button className="bg-gray-200 text-gray-800 py-3 rounded-lg shadow-md hover:bg-gray-300">
+          <button 
+            onClick={() => window.location.href = '/upload'}
+            className="bg-gray-200 text-gray-800 py-3 rounded-lg shadow-md hover:bg-gray-300"
+          >
             View Matches
           </button>
         </div>
@@ -25,42 +105,47 @@ const Dashboard = () => {
       {/* Recent Matches */}
       <div className="mt-8 bg-white p-8 rounded-xl shadow-lg">
         <h3 className="text-xl font-semibold text-gray-800 mb-6">Recent Matches</h3>
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="border-b text-gray-600">
-              <th className="py-3 text-left">Job Title</th>
-              <th className="py-3 text-left">Match Score</th>
-              <th className="py-3 text-left">Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr className="border-b">
-              <td className="py-4 text-gray-800">Senior Full Stack Engineer</td>
-              <td className="py-4 text-gray-800">88%</td>
-              <td className="py-4 text-gray-500">2 hours ago</td>
-            </tr>
-            <tr className="border-b">
-              <td className="py-4 text-gray-800">Digital Marketing Specialist</td>
-              <td className="py-4 text-gray-800">62%</td>
-              <td className="py-4 text-gray-500">1 day ago</td>
-            </tr>
-            <tr className="border-b">
-              <td className="py-4 text-gray-800">Data Analyst (Entry Level)</td>
-              <td className="py-4 text-gray-800">91%</td>
-              <td className="py-4 text-gray-500">2 days ago</td>
-            </tr>
-            <tr className="border-b">
-              <td className="py-4 text-gray-800">Product Manager (FinTech)</td>
-              <td className="py-4 text-red-500">45%</td>
-              <td className="py-4 text-gray-500">3 days ago</td>
-            </tr>
-            <tr>
-              <td className="py-4 text-gray-800">UX Designer - Mobile Apps</td>
-              <td className="py-4 text-gray-800">78%</td>
-              <td className="py-4 text-gray-500">4 days ago</td>
-            </tr>
-          </tbody>
-        </table>
+        
+        {loading ? (
+          <div className="text-center py-8">
+            <p className="text-gray-500">Loading your matches...</p>
+          </div>
+        ) : analyses.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-gray-500">No matches yet. Upload a resume to get started!</p>
+            <button 
+              onClick={() => window.location.href = '/upload'}
+              className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            >
+              Upload Your First Resume
+            </button>
+          </div>
+        ) : (
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="border-b text-gray-600">
+                <th className="py-3 text-left">Job Title</th>
+                <th className="py-3 text-left">Match Score</th>
+                <th className="py-3 text-left">Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {analyses.map((analysis) => (
+                <tr key={analysis.id} className="border-b">
+                  <td className="py-4 text-gray-800">
+                    {extractJobTitle(analysis.jobDescription)}
+                  </td>
+                  <td className={`py-4 font-medium ${getScoreColor(analysis.result.match_score)}`}>
+                    {analysis.result.match_score}%
+                  </td>
+                  <td className="py-4 text-gray-500">
+                    {formatRelativeTime(analysis.createdAt)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

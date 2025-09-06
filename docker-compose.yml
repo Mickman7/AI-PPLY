@@ -1,20 +1,19 @@
-version: "3.9"
-
 services:
   frontend:
-  build: ./frontend
-  container_name: ai-pply-frontend
-  platform: linux/amd64   # Force AMD64 (x86) architecture
-  ports:
-    - "3000:3000"
-  volumes:
-    - ./frontend:/app:cached
-  depends_on:
-    - backend
-
+    build: 
+      context: ./frontend
+    container_name: ai-pply-frontend
+    platform: linux/amd64
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app:cached
+    depends_on:
+      - backend
 
   backend:
-    build: ./backend
+    build: 
+      context: ./backend
     container_name: ai-pply-backend
     ports:
       - "8000:8000"
@@ -23,7 +22,7 @@ services:
     depends_on:
       - mongo
     env_file:
-      - .env                      # Load OPENAI_API_KEY
+      - .env
     environment:
       - MONGO_URI=mongodb://mongo:27017/ai-pply
 

@@ -1,4 +1,4 @@
-#!/Users/mickman/programs/AI-PPLY/backend/venv/bin/python3
+#!/Users/mickman/programs/AI-PPLY/backend/venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys

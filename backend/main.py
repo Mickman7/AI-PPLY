@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.compare import router as compare_router
+from .api.compare import router as compare_router
 from dotenv import load_dotenv
 import os
 
