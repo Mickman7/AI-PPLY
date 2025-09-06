@@ -1,5 +1,4 @@
-// ResultsPage.tsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Accordion,
@@ -8,14 +7,16 @@ import {
   AccordionTrigger,
 } from "../components/ui/accordion";
 import { useResume } from "../context/ResumeContext";
-import { collection, addDoc, Timestamp } from "firebase/firestore";
-import { db } from "../firebaseConfig"; // Import your Firebase config
 
 // Define backend response structure
+interface FeedbackItem {
+  text: string;
+  type: "positive" | "warning" | "critical";
+}
+
 interface CategoryResult {
   score: number;
-  matches: string;
-  gaps: string;
+  feedback: FeedbackItem[];
 }
 
 interface AnalysisResult {
@@ -29,44 +30,9 @@ interface AnalysisResult {
 const ResultsPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { resumeData, clearResumeData } = useResume();
-  const [saving, setSaving] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
-  const [saved, setSaved] = useState(false);
+  const { clearResumeData } = useResume();
 
   const result = location.state?.result as AnalysisResult | undefined;
-
-  // Save analysis to Firestore
-  const saveAnalysis = async () => {
-    if (!result || !resumeData.selectedFile) return;
-    
-    setSaving(true);
-    setSaveError(null);
-    
-    try {
-      await addDoc(collection(db, "analyses"), {
-        resumeName: resumeData.selectedFile.name,
-        jobDescription: resumeData.jobText,
-        result: result,
-        createdAt: Timestamp.now(),
-      });
-      
-      setSaved(true);
-      console.log("Analysis saved to Firestore");
-    } catch (error) {
-      console.error("Error saving analysis:", error);
-      setSaveError("Failed to save analysis. Please try again.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // Save automatically when page loads
-  useEffect(() => {
-    if (result && resumeData.selectedFile && !saved) {
-      saveAnalysis();
-    }
-  }, [result, resumeData]);
 
   // Validate the result object and its properties
   useEffect(() => {
@@ -91,7 +57,7 @@ const ResultsPage: React.FC = () => {
     !result.structure ||
     !result.skills
   ) {
-    return null;
+    return null; // Prevent rendering if navigation is triggered
   }
 
   const categories = [
@@ -100,6 +66,34 @@ const ResultsPage: React.FC = () => {
     { key: "structure", title: "Structure", color: "text-teal-700" },
     { key: "skills", title: "Skills", color: "text-orange-700" },
   ] as const;
+
+  // Function to get the appropriate icon based on feedback type
+  const getFeedbackIcon = (type: string) => {
+    switch (type) {
+      case "positive":
+        return "✅"; // Green check
+      case "warning":
+        return "⚠️"; // Amber warning
+      case "critical":
+        return "❌"; // Red X
+      default:
+        return "•";
+    }
+  };
+
+  // Function to get text color based on feedback type
+  const getFeedbackColor = (type: string) => {
+    switch (type) {
+      case "positive":
+        return "text-green-700";
+      case "warning":
+        return "text-yellow-700";
+      case "critical":
+        return "text-red-700";
+      default:
+        return "text-gray-700";
+    }
+  };
 
   const handleEditPrevious = () => {
     navigate("/upload");
@@ -114,31 +108,6 @@ const ResultsPage: React.FC = () => {
     <div className="min-h-screen bg-white flex flex-col items-center">
       <main className="flex flex-col items-center mt-12 max-w-5xl w-full">
         <h1 className="text-2xl font-semibold mb-6">Analysis Results</h1>
-
-        {/* Save Status */}
-        {saving && (
-          <div className="mb-4 p-2 bg-blue-100 text-blue-800 rounded">
-            Saving your analysis...
-          </div>
-        )}
-        
-        {saveError && (
-          <div className="mb-4 p-2 bg-red-100 text-red-800 rounded">
-            {saveError}
-            <button 
-              onClick={saveAnalysis}
-              className="ml-2 bg-red-600 text-white px-2 py-1 rounded text-sm"
-            >
-              Retry
-            </button>
-          </div>
-        )}
-        
-        {saved && (
-          <div className="mb-4 p-2 bg-green-100 text-green-800 rounded">
-            Analysis saved successfully!
-          </div>
-        )}
 
         {/* Overall Match Score */}
         <div className="w-full mb-6 p-4 rounded-lg shadow-sm bg-gray-100">
@@ -174,14 +143,18 @@ const ResultsPage: React.FC = () => {
               </AccordionTrigger>
               <AccordionContent>
                 <div className="p-4 border rounded-lg bg-gray-50 shadow-sm">
-                  <h4 className="font-medium text-green-700 mb-1">Matches</h4>
-                  <p className="text-gray-700 whitespace-pre-line mb-4">
-                    {result[key].matches}
-                  </p>
-                  <h4 className="font-medium text-red-700 mb-1">Gaps</h4>
-                  <p className="text-gray-700 whitespace-pre-line">
-                    {result[key].gaps}
-                  </p>
+                  <h4 className="font-medium text-gray-800 mb-3">Feedback</h4>
+                  <ul className="space-y-2">
+                    {result[key].feedback.map((item, index) => (
+                      <li 
+                        key={index} 
+                        className={`flex items-start ${getFeedbackColor(item.type)}`}
+                      >
+                        <span className="mr-2 mt-1">{getFeedbackIcon(item.type)}</span>
+                        <span>{item.text}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </AccordionContent>
             </AccordionItem>

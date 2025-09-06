@@ -10,7 +10,7 @@ from openai import OpenAI
 import logging
 import re
 import asyncio
-from typing import Dict, Any
+from typing import Dict, Any, List
 from pydantic import BaseModel, ValidationError
 from datetime import datetime
 
@@ -29,17 +29,20 @@ SUPPORTED_FILE_TYPES = {".pdf", ".docx", ".txt"}
 openai_client = None
 
 # Pydantic models for structured data
-class CategoryScore(BaseModel):
+class FeedbackItem(BaseModel):
+    text: str
+    type: str  # "positive", "warning", "critical"
+
+class CategoryFeedback(BaseModel):
     score: int
-    matches: str
-    gaps: str
+    feedback: List[FeedbackItem]
 
 class AnalysisResult(BaseModel):
     match_score: int
-    tone_style: CategoryScore
-    content: CategoryScore
-    structure: CategoryScore
-    skills: CategoryScore
+    tone_style: CategoryFeedback
+    content: CategoryFeedback
+    structure: CategoryFeedback
+    skills: CategoryFeedback
 
 def initialize_openai_client() -> OpenAI:
     """Initialize and return OpenAI client."""
@@ -156,8 +159,11 @@ EVALUATION CRITERIA:
 
 3. For each category, provide:
    - A numerical score based on actual analysis (not examples)
-   - Specific matches/strengths found
-   - Specific gaps/areas for improvement found
+   - A list of feedback items with specific, actionable feedback
+   - Each feedback item should be classified as:
+     * "positive" - Things done well (✅)
+     * "warning" - Areas that need improvement (⚠️)
+     * "critical" - Major gaps or issues that need immediate attention (❌)
 
 IMPORTANT INSTRUCTIONS:
 - Be brutally honest in your assessment
@@ -170,32 +176,39 @@ IMPORTANT INSTRUCTIONS:
     "match_score": [calculated_score],
     "tone_style": {{
         "score": [calculated_score],
-        "matches": "[specific matches found]",
-        "gaps": "[specific gaps found]"
+        "feedback": [
+            {{"text": "Specific feedback point 1", "type": "positive"}},
+            {{"text": "Specific feedback point 2", "type": "warning"}},
+            {{"text": "Specific feedback point 3", "type": "critical"}}
+        ]
     }},
     "content": {{
         "score": [calculated_score],
-        "matches": "[specific matches found]",
-        "gaps": "[specific gaps found]"
+        "feedback": [
+            {{"text": "Specific feedback point 1", "type": "positive"}},
+            {{"text": "Specific feedback point 2", "type": "warning"}}
+        ]
     }},
     "structure": {{
         "score": [calculated_score],
-        "matches": "[specific matches found]",
-        "gaps": "[specific gaps found]"
+        "feedback": [
+            {{"text": "Specific feedback point 1", "type": "positive"}},
+            {{"text": "Specific feedback point 2", "type": "critical"}}
+        ]
     }},
     "skills": {{
         "score": [calculated_score],
-        "matches": "[specific matches found]",
-        "gaps": "[specific gaps found]"
+        "feedback": [
+            {{"text": "Specific feedback point 1", "type": "positive"}},
+            {{"text": "Specific feedback point 2", "type": "warning"}}
+        ]
     }}
 }}
 
-GUIDELINES FOR SCORING:
-- Overall match score: Calculate based on % of job requirements met
-- Tone and style: Score based on professionalism, industry appropriateness
-- Content: Score based on relevance of experience, education, achievements
-- Structure: Score based on organization, readability, clarity
-- Skills: Score based on match between resume skills and job requirements
+GUIDELINES FOR FEEDBACK:
+- Positive feedback (✅): Specific strengths and good matches
+- Warning feedback (⚠️): Areas that could be improved but aren't critical
+- Critical feedback (❌): Major gaps, missing requirements, or serious issues
 
 ABSOLUTELY DO NOT:
 - Use the example values from the format template
@@ -203,7 +216,7 @@ ABSOLUTELY DO NOT:
 - Make up matches that don't exist
 - Be overly generous with scores
 
-BE HONEST AND SPECIFIC. If the resume doesn't match well, give low scores and explain why.
+BE HONEST AND SPECIFIC. If the resume doesn't match well, give low scores and explain why with specific feedback.
 """
 
 def clean_json_response(text: str) -> str:
@@ -235,6 +248,12 @@ def validate_analysis_result(result: Dict[str, Any]) -> AnalysisResult:
             score = getattr(analysis_result, category).score
             if not (0 <= score <= 100):
                 raise ValueError(f"Invalid {category} score: {score}. Must be between 0-100.")
+            
+            # Validate feedback items
+            feedback = getattr(analysis_result, category).feedback
+            for item in feedback:
+                if item.type not in ["positive", "warning", "critical"]:
+                    raise ValueError(f"Invalid feedback type: {item.type}. Must be 'positive', 'warning', or 'critical'.")
         
         return analysis_result
         
@@ -248,7 +267,7 @@ def validate_analysis_result(result: Dict[str, Any]) -> AnalysisResult:
         logger.error(f"Invalid score values: {e}")
         raise HTTPException(
             status_code=500, 
-            detail=f"AI returned invalid score values: {str(e)}"
+            detail=f"AI returned invalid values: {str(e)}"
         )
 
 async def call_openai_api(prompt: str) -> Dict[str, Any]:
@@ -262,12 +281,12 @@ async def call_openai_api(prompt: str) -> Dict[str, Any]:
             messages=[
                 {
                     "role": "system", 
-                    "content": "You are an expert ATS (Applicant Tracking System) analyst. Your job is to provide accurate, honest assessments of how well resumes match job descriptions. Be specific and detailed in your analysis. Never use example values - always calculate scores based on the actual content provided."
+                    "content": "You are an expert ATS (Applicant Tracking System) analyst. Your job is to provide accurate, honest assessments of how well resumes match job descriptions. Be specific and detailed in your analysis. Never use example values - always calculate scores based on the actual content provided. Provide actionable feedback with clear classifications (positive/warning/critical)."
                 },
                 {"role": "user", "content": prompt},
             ],
-            temperature=0.7,  # Increased slightly for more varied responses
-            max_tokens=1500,  # Increased for more detailed analysis
+            temperature=0.7,
+            max_tokens=2000,  # Increased for more detailed feedback
             response_format={"type": "json_object"}
         )
         
@@ -317,9 +336,6 @@ async def save_analysis_result(resume_text: str, job_text: str, result: Dict[str
         logger.info(f"Resume length: {len(resume_text)} chars")
         logger.info(f"Job description length: {len(job_text)} chars")
         
-        # You can add database integration here later
-        # For example: MongoDB, PostgreSQL, SQLite, etc.
-        
     except Exception as e:
         logger.error(f"Error in analysis logging: {e}")
 
@@ -334,7 +350,7 @@ async def compare_resume_with_job(
     Returns:
     - Overall match score (0-100%)
     - Detailed scores for tone, content, structure, and skills
-    - Specific matches and gaps for each category
+    - Specific feedback with visual indicators (✅, ⚠️, ❌)
     """
     try:
         # Validate file size

@@ -23,11 +23,16 @@ const Dashboard = () => {
         const querySnapshot = await getDocs(q);
         
         const analysesData: SavedAnalysis[] = [];
+        const seenIds = new Set(); // Track unique IDs
+        
         querySnapshot.forEach((doc) => {
-          analysesData.push({
-            id: doc.id,
-            ...doc.data(),
-          } as SavedAnalysis);
+          if (!seenIds.has(doc.id)) {
+            seenIds.add(doc.id);
+            analysesData.push({
+              id: doc.id,
+              ...doc.data(),
+            } as SavedAnalysis);
+          }
         });
         
         setAnalyses(analysesData);
@@ -130,7 +135,7 @@ const Dashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {analyses.map((analysis) => (
+              {analyses.slice(0, 5).map((analysis) => (
                 <tr key={analysis.id} className="border-b">
                   <td className="py-4 text-gray-800">
                     {extractJobTitle(analysis.jobDescription)}
