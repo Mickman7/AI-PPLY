@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { collection, getDocs, orderBy, query } from 'firebase/firestore';
-import { db } from '../firebaseConfig'; // Adjust path as needed
+import { db } from '../firebaseConfig';
+import { useUser } from '../context/UserContext';
 
 interface SavedAnalysis {
   id: string;
@@ -14,7 +15,8 @@ interface SavedAnalysis {
 
 const Dashboard = () => {
   const [analyses, setAnalyses] = useState<SavedAnalysis[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingAnalyses, setLoadingAnalyses] = useState(true);
+  const { userProfile, loading: userLoading } = useUser();
 
   useEffect(() => {
     const fetchAnalyses = async () => {
@@ -23,7 +25,7 @@ const Dashboard = () => {
         const querySnapshot = await getDocs(q);
         
         const analysesData: SavedAnalysis[] = [];
-        const seenIds = new Set(); // Track unique IDs
+        const seenIds = new Set();
         
         querySnapshot.forEach((doc) => {
           if (!seenIds.has(doc.id)) {
@@ -39,7 +41,7 @@ const Dashboard = () => {
       } catch (error) {
         console.error('Error fetching analyses:', error);
       } finally {
-        setLoading(false);
+        setLoadingAnalyses(false);
       }
     };
 
@@ -80,12 +82,37 @@ const Dashboard = () => {
     return 'text-red-500';
   };
 
+  if (userLoading) {
+    return (
+      <div className="p-8 bg-gray-50 min-h-screen">
+        <div className="text-center py-8">Loading dashboard...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
       {/* Header */}
       <div className="bg-blue-100 p-8 rounded-xl shadow-lg">
         <h5 className="text-sm font-medium text-gray-500">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</h5>
-        <h2 className="text-3xl font-bold text-gray-800 mt-1">Good Morning, Sarah Chen.</h2>
+        <h2 className="text-3xl font-bold text-gray-800 mt-1">
+          Good Morning, {userProfile?.name || 'User'}.
+        </h2>
+        
+        {/* Profile Completion Prompt */}
+        {!userProfile?.completedProfile && (
+          <div className="mt-4 p-4 bg-yellow-100 border border-yellow-400 rounded-lg">
+            <p className="text-yellow-800">
+              Please complete your profile to get the most out of AI-PPLY.
+            </p>
+            <button 
+              onClick={() => window.location.href = '/settings'}
+              className="mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            >
+              Complete Profile
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Quick Actions */}
@@ -111,7 +138,7 @@ const Dashboard = () => {
       <div className="mt-8 bg-white p-8 rounded-xl shadow-lg">
         <h3 className="text-xl font-semibold text-gray-800 mb-6">Recent Matches</h3>
         
-        {loading ? (
+        {loadingAnalyses ? (
           <div className="text-center py-8">
             <p className="text-gray-500">Loading your matches...</p>
           </div>

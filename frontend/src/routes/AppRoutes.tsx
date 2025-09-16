@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation }
 
 import Navbar from "../components/common/Navbar";
 import Sidebar from "../components/common/Sidebar";
+import Footer from "../components/common/Footer"; // Import Footer component
 import LandingPage from "../pages/LandingPage";
 import AuthPage from "../pages/AuthPage";
 import Dashboard from "../pages/Dashboard";
@@ -10,20 +11,22 @@ import ResultsPage from "../pages/Resultspage";
 import SettingsPage from "../pages/SettingsPage";
 import ResumeListPage from "../pages/ResumeListPage";
 
-// Layout wrapper that includes Navbar and conditionally includes Sidebar
+// Layout wrapper that includes Navbar and conditionally includes Sidebar and Footer
 const Layout = () => {
   const location = useLocation();
   const hideSidebar = ["/login", "/"].includes(location.pathname);
+  const hideFooter = ["/login", "/signup"].includes(location.pathname); // Hide footer for auth pages
 
   return (
     <>
       <Navbar />
-      <div style={{ display: "flex"}}>
+      <div style={{ display: "flex" }}>
         {!hideSidebar && <Sidebar />}
-        <div style={{ flex: 1, padding: "16px"}}>
+        <div style={{ flex: 1, padding: "16px" }}>
           <Outlet />
         </div>
       </div>
+      {!hideFooter && <Footer />} {/* Conditionally render Footer */}
     </>
   );
 };

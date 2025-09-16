@@ -18,7 +18,7 @@ const Sidebar = () => {
 
 
   return (
-    <aside className="w-48 bg-gray-200 h-screen p-4 flex flex-col justify-between">
+    <aside className="w-48 h-screen bg-white border-r border-b border-gray-200 p-4 flex flex-col justify-between">
       <ul>
         <li className="mb-4 flex items-center">
           <FontAwesomeIcon icon={faHome} className="mr-2" />

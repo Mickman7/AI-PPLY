@@ -103,8 +103,9 @@ const ResumeUploadPage: React.FC = () => {
         <UploadCard onFileSelected={handleFileSelected} file={selectedFile} />
 
         {/* Job Description Section */}
-        <section className="mt-12 w-full max-w-xl">
-          <h2 className="text-xl font-semibold mb-4">Paste Job Description</h2>
+        <section className="mt-12 w-[96%]">
+          <h2 className="text-xl font-semibold mb-[5px]">Paste Job Description</h2>
+          <p className="text-gray-500 mb-2">Review the extracted text before analysis.</p>
           <textarea
             className="w-full h-40 border border-gray-300 rounded-lg p-4 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Paste the job description text here..."
@@ -117,7 +118,7 @@ const ResumeUploadPage: React.FC = () => {
         <button
           onClick={handleAnalyze}
           disabled={isLoading}
-          className={`mt-6 px-6 py-2 rounded text-white ${
+          className={`mt-6 px-6 py-2 rounded text-white w-[50%] ${
             isLoading
               ? "bg-gray-400 cursor-not-allowed"
               : "bg-blue-500 hover:bg-blue-600"

@@ -1,4 +1,3 @@
-// ResultsPage.tsx
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -9,7 +8,7 @@ import {
 } from "../components/ui/accordion";
 import { useResume } from "../context/ResumeContext";
 import { collection, addDoc, Timestamp } from "firebase/firestore";
-import { db } from "../firebaseConfig"; // Import your Firebase config
+import { db } from "../firebaseConfig";
 
 // Define backend response structure
 interface CategoryResult {
@@ -61,37 +60,35 @@ const ResultsPage: React.FC = () => {
     }
   };
 
-  // Save automatically when page loads
+  // Save automatically when page loads if we have results
   useEffect(() => {
     if (result && resumeData.selectedFile && !saved) {
       saveAnalysis();
     }
   }, [result, resumeData]);
 
-  // Validate the result object and its properties
-  useEffect(() => {
-    if (
-      !result ||
-      typeof result.match_score !== "number" ||
-      !result.tone_style ||
-      !result.content ||
-      !result.structure ||
-      !result.skills
-    ) {
-      alert("Invalid or incomplete analysis data. Please try again.");
-      navigate("/upload");
-    }
-  }, [result, navigate]);
+  // Check if we have valid results
+  const hasValidResults = result &&
+    typeof result.match_score === "number" &&
+    result.tone_style &&
+    result.content &&
+    result.structure &&
+    result.skills;
 
-  if (
-    !result ||
-    typeof result.match_score !== "number" ||
-    !result.tone_style ||
-    !result.content ||
-    !result.structure ||
-    !result.skills
-  ) {
-    return null;
+  // If no valid results, show the "no results" state
+  if (!hasValidResults) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center">
+        <h1 className="text-2xl font-semibold mb-4">No analysis results found</h1>
+        <p className="text-gray-600 mb-6">Please upload a resume and analyze it first.</p>
+        <button
+          onClick={() => navigate("/upload")}
+          className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
+        >
+          Upload Resume
+        </button>
+      </div>
+    );
   }
 
   const categories = [
@@ -145,7 +142,7 @@ const ResultsPage: React.FC = () => {
           <div className="mb-2 p-4">
             <h2 className="text-lg font-semibold mb-2">Overall Match Score</h2>
             <p className="text-blue-600 text-4xl font-bold">
-              {result.match_score}%
+              {result!.match_score}%
             </p>
           </div>
 
@@ -158,7 +155,7 @@ const ResultsPage: React.FC = () => {
               >
                 <h3 className={`text-md font-semibold mb-2 ${color}`}>{title}</h3>
                 <p className="text-blue-600 text-xl font-bold">
-                  {result[key].score}/100
+                  {result![key].score}/100
                 </p>
               </div>
             ))}
@@ -176,11 +173,11 @@ const ResultsPage: React.FC = () => {
                 <div className="p-4 border rounded-lg bg-gray-50 shadow-sm">
                   <h4 className="font-medium text-green-700 mb-1">Matches</h4>
                   <p className="text-gray-700 whitespace-pre-line mb-4">
-                    {result[key].matches}
+                    {result![key].matches}
                   </p>
                   <h4 className="font-medium text-red-700 mb-1">Gaps</h4>
                   <p className="text-gray-700 whitespace-pre-line">
-                    {result[key].gaps}
+                    {result![key].gaps}
                   </p>
                 </div>
               </AccordionContent>

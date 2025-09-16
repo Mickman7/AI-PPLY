@@ -1,5 +1,7 @@
 import { useDropzone } from "react-dropzone";
 import { useState, useEffect } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCloudUploadAlt } from "@fortawesome/free-solid-svg-icons"; // Use cloud upload icon
 
 interface UploadCardProps {
   onFileSelected?: (file: File | null) => void;
@@ -45,13 +47,14 @@ const UploadCard: React.FC<UploadCardProps> = ({ onFileSelected, file }) => {
   return (
     <div
       {...getRootProps()}
-      className={`w-full max-w-lg border border-dashed rounded-lg p-6 flex flex-col items-center cursor-pointer transition ${
+      className={`w-[95%] h-40 border border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition ${
         isDragActive ? "border-blue-500 bg-blue-50" : "border-gray-300"
       }`}
     >
       <input {...getInputProps()} />
-      <p className="text-gray-700">
-        {isDragActive ? "Drop your file here..." : "Drag & drop your resume file here"}
+      <FontAwesomeIcon icon={faCloudUploadAlt} className="text-3xl text-gray-500 mb-2" /> {/* Add cloud upload icon */}
+      <p className="text-gray-700 text-center">
+        {isDragActive ? "Drop your file here..." : "Drag & drop your Job Description here, or click to browse"}
       </p>
 
       {acceptedFiles.length > 0 && (

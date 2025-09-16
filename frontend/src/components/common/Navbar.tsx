@@ -23,7 +23,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="flex justify-between items-center p-4 bg-white text-blue-300 border-b border-gray-200">
+    <nav className="flex justify-between items-center p-4 bg-white text-blue-300 border-b border-gray-200 ">
       <h1 className="text-lg font-bold">AI-PPLY</h1>
       <ul className="flex items-center space-x-4">
         <li><Link to="/">Home</Link></li>
