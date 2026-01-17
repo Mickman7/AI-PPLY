@@ -4,9 +4,11 @@ import { auth, db } from '../firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 
-interface UserProfile {
-  name?: string;
-  completedProfile?: boolean;
+export interface UserProfile {
+  name: string;
+  email: string;
+  completedProfile: boolean;
+  uid: string; // Added uid property
 }
 
 interface UserContextType {

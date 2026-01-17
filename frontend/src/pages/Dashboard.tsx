@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs, orderBy, query } from 'firebase/firestore';
+import { collection, doc, getDocs, orderBy, query } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useUser } from '../context/UserContext';
 
@@ -8,7 +8,9 @@ interface SavedAnalysis {
   resumeName: string;
   jobDescription: string;
   result: {
-    match_score: number;
+    analysis: {
+      match_score: number; // Updated to reflect the correct structure
+    };
   };
   createdAt: any;
 }
@@ -21,12 +23,17 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchAnalyses = async () => {
       try {
-        const q = query(collection(db, 'analyses'), orderBy('createdAt', 'desc'));
-        const querySnapshot = await getDocs(q);
-        
+        if (!userProfile?.uid) {
+          console.error('User ID is missing.');
+          return;
+        }
+
+        const userAnalysesRef = collection(doc(db, "users", userProfile.uid), "analyses"); // Path: users/{userId}/analyses
+        const querySnapshot = await getDocs(userAnalysesRef);
+
         const analysesData: SavedAnalysis[] = [];
         const seenIds = new Set();
-        
+
         querySnapshot.forEach((doc) => {
           if (!seenIds.has(doc.id)) {
             seenIds.add(doc.id);
@@ -36,7 +43,7 @@ const Dashboard = () => {
             } as SavedAnalysis);
           }
         });
-        
+
         setAnalyses(analysesData);
       } catch (error) {
         console.error('Error fetching analyses:', error);
@@ -46,7 +53,7 @@ const Dashboard = () => {
     };
 
     fetchAnalyses();
-  }, []);
+  }, [userProfile?.uid]);
 
   // Function to extract job title from job description (simple approach)
   const extractJobTitle = (jobDescription: string) => {
@@ -167,11 +174,13 @@ const Dashboard = () => {
                   <td className="py-4 text-gray-800">
                     {extractJobTitle(analysis.jobDescription)}
                   </td>
-                  <td className={`py-4 font-medium ${getScoreColor(analysis.result.match_score)}`}>
-                    {analysis.result.match_score}%
+                  <td className={`py-4 font-medium ${getScoreColor(analysis.result?.analysis?.match_score || 0)}`}>
+                    {analysis.result?.analysis?.match_score !== undefined 
+                      ? `${analysis.result.analysis.match_score}%` 
+                      : "N/A"}
                   </td>
                   <td className="py-4 text-gray-500">
-                    {formatRelativeTime(analysis.createdAt)}
+                    {analysis.createdAt ? formatRelativeTime(analysis.createdAt) : "N/A"}
                   </td>
                 </tr>
               ))}
