@@ -137,8 +137,7 @@ def build_openai_prompt(resume_text: str, job_text: str) -> str:
     job_text = truncate_text(job_text)
     
     return f"""
-ANALYSIS TASK:
-You are an expert ATS (Applicant Tracking System) analyst. Analyze the following resume against the job description and provide a comprehensive evaluation with accurate scores.
+Analyze the following resume against the job description and provide a comprehensive evaluation.
 
 RESUME:
 {resume_text}
@@ -146,64 +145,44 @@ RESUME:
 JOB DESCRIPTION:
 {job_text}
 
-EVALUATION CRITERIA:
-1. Calculate an overall match score (0-100%) based on how well the resume matches the job requirements
-2. Evaluate these specific categories with individual scores (1-100):
-   - Tone and style: Does the resume's tone match the company/industry style?
-   - Content: How relevant is the experience and education to the job requirements?
-   - Structure: Is the resume well-organized, clear, and easy to read?
-   - Skills: How well do the skills match the job requirements?
+INSTRUCTIONS:
+1. Evaluate the match between the resume and job description across these categories:
+   - Overall match score (0-100%)
+   - Tone and style compatibility (1-100)
+   - Content relevance (1-100)
+   - Structure effectiveness (1-100)
+   - Skills alignment (1-100)
 
-3. For each category, provide:
-   - A numerical score based on actual analysis (not examples)
-   - Specific matches/strengths found
-   - Specific gaps/areas for improvement found
+2. For each category, provide:
+   - A numerical score
+   - Key matches/strengths
+   - Identified gaps/areas for improvement
 
-IMPORTANT INSTRUCTIONS:
-- Be brutally honest in your assessment
-- Scores should reflect the actual match quality, not just high numbers
-- Provide specific examples from the resume and job description
-- If there are significant mismatches, score accordingly
-- Return ONLY valid JSON in this exact format (do not use example values):
+3. IMPORTANT: Respond ONLY with valid JSON in this exact format:
 
 {{
-    "match_score": [calculated_score],
+    "match_score": 85,
     "tone_style": {{
-        "score": [calculated_score],
-        "matches": "[specific matches found]",
-        "gaps": "[specific gaps found]"
+        "score": 80,
+        "matches": "Professional tone aligns well with corporate environment",
+        "gaps": "Could use more industry-specific terminology"
     }},
     "content": {{
-        "score": [calculated_score],
-        "matches": "[specific matches found]",
-        "gaps": "[specific gaps found]"
+        "score": 75,
+        "matches": "Strong experience and education alignment",
+        "gaps": "Missing specific project management examples"
     }},
     "structure": {{
-        "score": [calculated_score],
-        "matches": "[specific matches found]",
-        "gaps": "[specific gaps found]"
+        "score": 90,
+        "matches": "Clear organization and easy readability",
+        "gaps": "Work experience could be more chronological"
     }},
     "skills": {{
-        "score": [calculated_score],
-        "matches": "[specific matches found]",
-        "gaps": "[specific gaps found]"
+        "score": 70,
+        "matches": "Good technical skills match (Python, SQL)",
+        "gaps": "Missing cloud platform experience mentioned in job requirements"
     }}
 }}
-
-GUIDELINES FOR SCORING:
-- Overall match score: Calculate based on % of job requirements met
-- Tone and style: Score based on professionalism, industry appropriateness
-- Content: Score based on relevance of experience, education, achievements
-- Structure: Score based on organization, readability, clarity
-- Skills: Score based on match between resume skills and job requirements
-
-ABSOLUTELY DO NOT:
-- Use the example values from the format template
-- Return identical scores for different analyses
-- Make up matches that don't exist
-- Be overly generous with scores
-
-BE HONEST AND SPECIFIC. If the resume doesn't match well, give low scores and explain why.
 """
 
 def clean_json_response(text: str) -> str:
@@ -221,34 +200,14 @@ def clean_json_response(text: str) -> str:
     return text.strip()
 
 def validate_analysis_result(result: Dict[str, Any]) -> AnalysisResult:
-    """Validate the analysis result structure and score sanity."""
+    """Validate the analysis result structure."""
     try:
-        # First validate the structure
-        analysis_result = AnalysisResult(**result)
-        
-        # Then validate score ranges
-        if not (0 <= analysis_result.match_score <= 100):
-            raise ValueError(f"Invalid match_score: {analysis_result.match_score}. Must be between 0-100.")
-            
-        categories = ["tone_style", "content", "structure", "skills"]
-        for category in categories:
-            score = getattr(analysis_result, category).score
-            if not (0 <= score <= 100):
-                raise ValueError(f"Invalid {category} score: {score}. Must be between 0-100.")
-        
-        return analysis_result
-        
+        return AnalysisResult(**result)
     except ValidationError as e:
         logger.error(f"Invalid analysis result structure: {e}")
         raise HTTPException(
             status_code=500, 
             detail=f"Invalid analysis result format from AI: {str(e)}"
-        )
-    except ValueError as e:
-        logger.error(f"Invalid score values: {e}")
-        raise HTTPException(
-            status_code=500, 
-            detail=f"AI returned invalid score values: {str(e)}"
         )
 
 async def call_openai_api(prompt: str) -> Dict[str, Any]:
@@ -262,17 +221,17 @@ async def call_openai_api(prompt: str) -> Dict[str, Any]:
             messages=[
                 {
                     "role": "system", 
-                    "content": "You are an expert ATS (Applicant Tracking System) analyst. Your job is to provide accurate, honest assessments of how well resumes match job descriptions. Be specific and detailed in your analysis. Never use example values - always calculate scores based on the actual content provided."
+                    "content": "You are an expert ATS (Applicant Tracking System) analyst. Analyze resumes against job descriptions and provide structured JSON evaluations with scores and feedback."
                 },
                 {"role": "user", "content": prompt},
             ],
-            temperature=0.7,  # Increased slightly for more varied responses
-            max_tokens=1500,  # Increased for more detailed analysis
+            temperature=0.1,
+            max_tokens=1000,
             response_format={"type": "json_object"}
         )
         
         result_text = response.choices[0].message.content.strip()
-        logger.info(f"Received response from OpenAI API: {result_text}")
+        logger.info("Received response from OpenAI API")
 
         if not result_text:
             raise HTTPException(status_code=500, detail="AI service returned an empty response")
@@ -371,7 +330,15 @@ async def compare_resume_with_job(
         # Save results (non-blocking)
         asyncio.create_task(save_analysis_result(resume_text, job_text, result))
 
-        return result
+        return {
+            "success": True,
+            "analysis": result,
+            "metadata": {
+                "resume_length": len(resume_text),
+                "job_description_length": len(job_text),
+                "processed_at": datetime.utcnow().isoformat()
+            }
+        }
 
     except HTTPException:
         raise

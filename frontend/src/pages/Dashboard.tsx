@@ -96,7 +96,7 @@ const Dashboard = () => {
       <div className="bg-blue-100 p-8 rounded-xl shadow-lg">
         <h5 className="text-sm font-medium text-gray-500">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</h5>
         <h2 className="text-3xl font-bold text-gray-800 mt-1">
-          Good Morning, {userProfile?.name || 'User'}.
+          Welcome, {userProfile?.name || 'User'}
         </h2>
         
         {/* Profile Completion Prompt */}

@@ -67,9 +67,9 @@ const ResumeUploadPage: React.FC = () => {
       }
 
       const result = await response.json();
-      console.log("Analysis Result:", result);
+      console.log("Analysis Result:", result); // Debugging log
 
-      // Navigate to results page with the result data
+      // Pass the entire response to the results page
       navigate("/results", { state: { result } });
     } catch (error) {
       console.error("Error analyzing resume:", error);

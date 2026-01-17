@@ -7,8 +7,9 @@ import {
   AccordionTrigger,
 } from "../components/ui/accordion";
 import { useResume } from "../context/ResumeContext";
-import { collection, addDoc, Timestamp } from "firebase/firestore";
+import { collection, addDoc, Timestamp, doc } from "firebase/firestore";
 import { db } from "../firebaseConfig";
+import { getAuth } from "firebase/auth"; // Import Firebase Auth
 
 // Define backend response structure
 interface CategoryResult {
@@ -26,6 +27,8 @@ interface AnalysisResult {
 }
 
 const ResultsPage: React.FC = () => {
+  const auth = getAuth(); // Get the Firebase Auth instance
+  const user = auth.currentUser; // Get the current user
   const location = useLocation();
   const navigate = useNavigate();
   const { resumeData, clearResumeData } = useResume();
@@ -33,25 +36,28 @@ const ResultsPage: React.FC = () => {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
-  const result = location.state?.result as AnalysisResult | undefined;
+  const resultWrapper = location.state?.result; // Get the wrapper object
+  const result = resultWrapper?.analysis as AnalysisResult | undefined; // Extract the analysis field
+  console.log("Result passed to ResultsPage:", result); // Debugging log
 
   // Save analysis to Firestore
   const saveAnalysis = async () => {
-    if (!result || !resumeData.selectedFile) return;
-    
+    if (!result || !resumeData.selectedFile || !user) return; // Ensure user is authenticated
+
     setSaving(true);
     setSaveError(null);
-    
+
     try {
-      await addDoc(collection(db, "analyses"), {
+      const userAnalysesRef = collection(doc(db, "users", user.uid), "analyses"); // Path: users/{userId}/analyses
+      await addDoc(userAnalysesRef, {
         resumeName: resumeData.selectedFile.name,
         jobDescription: resumeData.jobText,
         result: result,
         createdAt: Timestamp.now(),
       });
-      
+
       setSaved(true);
-      console.log("Analysis saved to Firestore");
+      console.log("Analysis saved to Firestore under user:", user.uid);
     } catch (error) {
       console.error("Error saving analysis:", error);
       setSaveError("Failed to save analysis. Please try again.");
@@ -70,10 +76,15 @@ const ResultsPage: React.FC = () => {
   // Check if we have valid results
   const hasValidResults = result &&
     typeof result.match_score === "number" &&
-    result.tone_style &&
-    result.content &&
-    result.structure &&
-    result.skills;
+    result.tone_style?.score !== undefined &&
+    result.content?.score !== undefined &&
+    result.structure?.score !== undefined &&
+    result.skills?.score !== undefined;
+
+  // Add a fallback log for debugging
+  if (!hasValidResults) {
+    console.error("Invalid result object:", result);
+  }
 
   // If no valid results, show the "no results" state
   if (!hasValidResults) {
