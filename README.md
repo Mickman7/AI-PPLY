@@ -2,12 +2,12 @@
 AI-PPLY is a fullstack web application that helps job seekers optimise their resumes for Applicant Tracking Systems (ATS) and specific job postings.
 
 ## 💻 Technologies
-- React
-- TypeScript
-- Tailwind CSS
-- Python (FastAPI)
-- ChatGPT (OpenAI API)
-- Docker
+- `React`
+- `TypeScript`
+- `Tailwind CSS`
+- `Python (FastAPI)`
+- `ChatGPT (OpenAI API)`
+- `Docker`
 
 ## ✨ Features
 - Upload a Resume and Job Description
@@ -21,10 +21,10 @@ To start my journey in understanding AI i started with a simple project that use
 
 ### 🚦 Running the Project
 1. Clone the repository
-2. Install depenancies: npm install
-3. Move into frontend folder and run development server: npm run dev
-4. Move into backend folder and run server: python3 -m uvicorn backend.main:app --reload
-5. Open: http://localhost:8000 in your browser
+2. Install depenancies: `npm install`
+3. Move into frontend folder and run development server: `npm run dev`
+4. Move into backend folder and run server: `python3 -m uvicorn backend.main:app --reload`
+5. Open: `http://localhost:8000` in your browser
 
 ## 📺 Preview
 
